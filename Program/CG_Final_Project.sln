@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CG_HW3", "CG_HW3\CG_HW3.vcxproj", "{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}.Debug|x64.ActiveCfg = Debug|x64
+		{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}.Debug|x64.Build.0 = Debug|x64
+		{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}.Debug|x86.ActiveCfg = Debug|Win32
+		{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}.Debug|x86.Build.0 = Debug|Win32
+		{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}.Release|x64.ActiveCfg = Release|x64
+		{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}.Release|x64.Build.0 = Release|x64
+		{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}.Release|x86.ActiveCfg = Release|Win32
+		{DCCE7029-D390-4FF2-A1EB-FAEC549BC8BC}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67209DEB-8024-4EB7-8008-6ECD37D47592}
+	EndGlobalSection
+EndGlobal

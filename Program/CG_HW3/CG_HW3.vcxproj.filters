@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="glm\glm.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+    <ClCompile Include="glm_helper.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+    <ClCompile Include="glm\glm_util.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+    <ClCompile Include="glm\glmimg.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+    <ClCompile Include="glm\glmimg_devil.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+    <ClCompile Include="glm\glmimg_jpg.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+    <ClCompile Include="glm\glmimg_png.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+    <ClCompile Include="glm\glmimg_sdl.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+    <ClCompile Include="glm\glmimg_sim.c">
+      <Filter>glm</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\shader_lib\shader.h" />
+    <ClInclude Include="glm\glm.h">
+      <Filter>glm</Filter>
+    </ClInclude>
+    <ClInclude Include="glm_helper.h">
+      <Filter>glm</Filter>
+    </ClInclude>
+    <ClInclude Include="glm\glmint.h">
+      <Filter>glm</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="glm">
+      <UniqueIdentifier>{97e77f03-ba2c-49c4-82ae-8502d505c09d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{165ab453-823d-4d9e-b580-9a8a599b17da}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\barrier.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\barrier.vert">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

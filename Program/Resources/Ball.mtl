@@ -5,4 +5,4 @@ newmtl Tile
 	Kd 0.8 0.8 0.8
 	Ks 0.5 0.5 0.5
 	Ka 0.1 0.1 0.1
-	map_Kd Tile.ppm
+	map_Kd honey_comb_master.ppm
