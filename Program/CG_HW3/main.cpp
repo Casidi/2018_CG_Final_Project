@@ -21,6 +21,7 @@ struct Vertex
 	GLfloat position[3];
 	GLfloat normal[3];
 	GLfloat texcoord[2];
+	GLfloat color[3];
 };
 typedef struct Vertex Vertex;
 
@@ -41,14 +42,15 @@ void renderDepthTexture();
 namespace
 {
 	char *obj_file_dir = "../Resources/Football.obj";
-	//char *bunny_file_dir = "../Resources/bunny.obj";
-	char *bunny_file_dir = "../Resources/Football.obj";
+	char *bunny_file_dir = "../Resources/bunny.obj";
 	char *teapot_file_dir = "../Resources/teapot.obj";
 	char *main_tex_dir = "../Resources/honey_comb_master.ppm";
 	
 	GLfloat light_rad = 0.05;//radius of the light bulb
-	float eyet = 0.0;//theta in degree
-	float eyep = 90.0;//phi in degree
+	float default_eyet = 0.0;
+	float default_eyep = 90.0;
+	float eyet = default_eyet;//theta in degree
+	float eyep = default_eyep;//phi in degree
 	bool mleft = false;
 	bool mright = false;
 	bool mmiddle = false;
@@ -101,13 +103,21 @@ GLuint depthFrameBuffer;
 GLuint depthTexture;
 GLuint renderedTexture;
 
-float eyex = 0.0;
-float eyey = 0.64;
-float eyez = 3.0;
+float default_eyex = 0.0;
+float default_eyey = 0.64;
+float default_eyez = 5.0;
 
-GLfloat light_pos[] = { 1.1, 1.0, 1.3 };
-GLfloat ball_pos[] = { 0.0, 0.0, 0.0 };
-GLfloat ball_rot[] = { 0.0, 0.0, 0.0 };
+GLfloat default_light_pos[] = { 1.1, 1.0, 1.8 };
+GLfloat default_ball_pos[] = { 0.0, 1.0, 0.0 };
+GLfloat default_ball_rot[] = { 0.0, 0.0, 0.0 };
+
+float eyex = default_eyex;
+float eyey = default_eyey;
+float eyez = default_eyez;
+
+GLfloat light_pos[] = { default_light_pos[0], default_light_pos[1], default_light_pos[2] };
+GLfloat ball_pos[] = { default_ball_pos[0], default_ball_pos[1], default_ball_pos[2] };
+GLfloat ball_rot[] = { default_ball_rot[0], default_ball_rot[1], default_ball_rot[2] };
 
 #define deltaTime (10) // in ms (1e-3 second)
 float time;
@@ -126,7 +136,6 @@ int main(int argc, char *argv[])
 	glutInit(&argc, argv);
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-	// remember to replace "YourStudentID" with your own student ID
 	glutCreateWindow("Pressure model for soft body");
 	glutReshapeWindow(512, 512);
 
@@ -152,31 +161,6 @@ int main(int argc, char *argv[])
 
 void init(void)
 {
-	glGenTextures(1, &renderedTexture);
-	glBindTexture(GL_TEXTURE_2D, renderedTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glGenTextures(1, &depthTexture);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, 512, 512, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glGenFramebuffers(1, &depthFrameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthFrameBuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		printf("ERROR::FRAMEBUFFER:: Framebuffer is not complete!\n");
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glEnable(GL_CULL_FACE);
@@ -207,7 +191,6 @@ void init(void)
 	glEnable(GL_DEPTH_TEST);
 	print_model_info(teapotModel);
 
-	//you may need to do something here(create shaders/program(s) and create vbo(s)/vao from GLMmodel model)
 	GLMgroup *group = model->groups;
 	int numVertices = 0;
 	while (group) {
@@ -218,14 +201,14 @@ void init(void)
 
 	Vertex *allVertices = new Vertex[numVertices];
 	group = model->groups;
-#define T(x) (model->triangles[(x)])
 	while (group) {
 		for (int i = 0; i < group->numtriangles; ++i) {
-			GLMtriangle* triangle = &T(group->triangles[i]);
+			GLMtriangle* triangle = &(model->triangles[group->triangles[i]]);
 			for (int j = 0; j < 3; ++j) {
 				for (int k = 0; k < 3; ++k) {
 					allVertices[i * 3 + j].position[k] = model->vertices[3 * triangle->vindices[j] + k];
 					allVertices[i * 3 + j].normal[k] = model->normals[3 * triangle->nindices[j] + k];
+					allVertices[i * 3 + j].color[k] = model->materials[triangle->material].diffuse[k];
 				}
 				for (int k = 0; k < 2; ++k) {
 					allVertices[i * 3 + j].texcoord[k] = model->texcoords[2 * triangle->tindices[j] + k];
@@ -247,14 +230,14 @@ void init(void)
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(GLfloat)));
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(6 * sizeof(GLfloat)));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(8 * sizeof(GLfloat)));
 
-	// APIs for creating shaders and creating shader programs have been done by TAs
-	// following is an example for creating a shader program using given vertex shader and fragment shader
 	GLuint vert = createShader("Shaders/barrier.vert", "vertex");
 	GLuint frag = createShader("Shaders/barrier.frag", "fragment");
 	modelProgram = createProgram(vert, frag);
@@ -262,9 +245,26 @@ void init(void)
 
 void display(void)
 {
-	//you may need to do something here(declare some local variables you need and maybe load Model matrix here...)
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(
+		eyex,
+		eyey,
+		eyez,
+		eyex + cos(eyet*M_PI / 180)*cos(eyep*M_PI / 180),
+		eyey + sin(eyet*M_PI / 180),
+		eyez - cos(eyet*M_PI / 180)*sin(eyep*M_PI / 180),
+		0.0,
+		1.0,
+		0.0);
+
+	// light ball
+	glPushMatrix();
+	glTranslatef(light_pos[0], light_pos[1], light_pos[2]);
+	glutSolidSphere(0.1, 20, 20);
+	glPopMatrix();
 
 	// floor
 	glDisable(GL_CULL_FACE);
@@ -283,40 +283,15 @@ void display(void)
 	glPopMatrix();
 	glEnable(GL_CULL_FACE);
 
-	//please try not to modify the following block of code(you can but you are not supposed to)
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(
-		eyex, 
-		eyey, 
-		eyez,
-		eyex+cos(eyet*M_PI/180)*cos(eyep*M_PI / 180), 
-		eyey+sin(eyet*M_PI / 180), 
-		eyez-cos(eyet*M_PI / 180)*sin(eyep*M_PI / 180),
-		0.0,
-		1.0,
-		0.0);
-	glPushMatrix();
-		glTranslatef(ball_pos[0], ball_pos[1], ball_pos[2]);
-		glRotatef(ball_rot[0], 1, 0, 0);
-		glRotatef(ball_rot[1], 0, 1, 0);
-		glRotatef(ball_rot[2], 0, 0, 1);
-	// please try not to modify the previous block of code
-
-	// you may need to do something here(pass uniform variable(s) to shader and render the model)
-		myDrawModel();
-	//glmDraw(model,GLM_TEXTURE);// please delete this line in your final code! It's just a preview of rendered object
-
-	glPopMatrix();
+	myDrawModel();
+	//glmDraw(model,GLM_COLOR);
 
 	glutSwapBuffers();
 	camera_light_ball_move();
 }
 
 void myDrawModel() {
-	//glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_CULL_FACE);
-
+	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
 	gluLookAt(
@@ -531,20 +506,14 @@ void keyboard(unsigned char key, int x, int y) {
 	}
 	case 'c'://reset all pose
 	{
-		light_pos[0] = 1.1;
-		light_pos[1] = 1.0;
-		light_pos[2] = 1.3;
-		ball_pos[0] = 0;
-		ball_pos[1] = 0;
-		ball_pos[2] = 0;
-		ball_rot[0] = 0;
-		ball_rot[1] = 0;
-		ball_rot[2] = 0;
-		eyex = 0.0;
-		eyey = 0.64;
-		eyez = 3.0;
-		eyet = 0;
-		eyep = 90;
+		memcpy(light_pos, default_light_pos, sizeof(float) * 3);
+		memcpy(ball_pos, default_ball_pos, sizeof(float) * 3);
+		memcpy(ball_rot, default_ball_rot, sizeof(float) * 3);
+		eyex = default_eyex;
+		eyey = default_eyey;
+		eyez = default_eyez;
+		eyet = default_eyet;
+		eyep = default_eyep;
 		break;
 	}
 	default:

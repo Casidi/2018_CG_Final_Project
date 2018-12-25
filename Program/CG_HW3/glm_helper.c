@@ -20,6 +20,7 @@ void print_model_info(const GLMmodel* model) {
 		printf("  material name: %s\n", mm.name);
 		printf("  material map_Kd(texture) index in model: %u\n", mm.map_diffuse);
 		printf("  material shininess: %.3f\n", mm.shininess);
+		printf("  material diffuse: (%.3f, %.3f, %.3f)\n", mm.diffuse[0], mm.diffuse[1], mm.diffuse[2]);
 		printf("\n");
 	}
 
