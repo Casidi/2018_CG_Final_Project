@@ -40,7 +40,7 @@ void renderDepthTexture();
 
 namespace
 {
-	char *obj_file_dir = "../Resources/Ball.obj";
+	char *obj_file_dir = "../Resources/Football.obj";
 	//char *bunny_file_dir = "../Resources/bunny.obj";
 	char *bunny_file_dir = "../Resources/Football.obj";
 	char *teapot_file_dir = "../Resources/teapot.obj";
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	// remember to replace "YourStudentID" with your own student ID
-	glutCreateWindow("CG_HW3_0756025");
+	glutCreateWindow("Pressure model for soft body");
 	glutReshapeWindow(512, 512);
 
 	glewInit();
@@ -263,21 +263,8 @@ void init(void)
 void display(void)
 {
 	//you may need to do something here(declare some local variables you need and maybe load Model matrix here...)
-	renderDepthTexture();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// looping teapot and bunny
-	glPushMatrix();
-	glScalef(0.3, 0.3, 0.3);
-	glTranslatef(-2.1, 3.3 - fmod(time, 3), 1.3);
-	glmDraw(teapotModel, GLM_TEXTURE);
-	glPopMatrix();
-
-	glPushMatrix();
-	glScalef(0.3, 0.3, 0.3);
-	glTranslatef(2, 3.3 - fmod(time, 3), 1.4);
-	glmDraw(bunnyModel, GLM_TEXTURE | GLM_MATERIAL);
-	glPopMatrix();
 
 	// floor
 	glDisable(GL_CULL_FACE);
@@ -326,49 +313,9 @@ void display(void)
 	camera_light_ball_move();
 }
 
-void renderDepthTexture() {
-	glBindFramebuffer(GL_FRAMEBUFFER, depthFrameBuffer);
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-
-	//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glPushMatrix();
-	glScalef(0.3, 0.3, 0.3);
-	glTranslatef(-2.1, 3.3 - fmod(time, 3), 1.3);
-	glmDraw(teapotModel, GLM_TEXTURE);
-	glPopMatrix();
-
-	glPushMatrix();
-	glScalef(0.3, 0.3, 0.3);
-	glTranslatef(2, 3.3 - fmod(time, 3), 1.4);
-	glmDraw(bunnyModel, GLM_TEXTURE);
-	glPopMatrix();
-
-	// floor
-	glDisable(GL_CULL_FACE);
-	glPushMatrix();
-	glScalef(30, 1, 30);
-	glTranslatef(0.0f, 0.0f, 0.0f);
-	glBegin(GL_TRIANGLE_STRIP);
-
-	glColor3f(1, 1, 1);
-	glVertex3f(1, -0.032, 1);
-	glVertex3f(1, -0.031, -1);
-	glVertex3f(-1, -0.032, 1);
-	glVertex3f(-1, -0.031, -1);
-
-	glEnd();
-	glPopMatrix();
-	glEnable(GL_CULL_FACE);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 void myDrawModel() {
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
+	//glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_CULL_FACE);
 
 	glPushMatrix();
 	glLoadIdentity();
@@ -421,15 +368,11 @@ void myDrawModel() {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mainTextureID);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
 
 	glBindVertexArray(modelVAO);
 	glDrawArrays(GL_TRIANGLES, 0, modelVertexNum);
 	glBindVertexArray(0);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
