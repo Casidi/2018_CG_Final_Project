@@ -41,7 +41,8 @@ void renderDepthTexture();
 namespace
 {
 	char *obj_file_dir = "../Resources/Ball.obj";
-	char *bunny_file_dir = "../Resources/bunny.obj";
+	//char *bunny_file_dir = "../Resources/bunny.obj";
+	char *bunny_file_dir = "../Resources/Football.obj";
 	char *teapot_file_dir = "../Resources/teapot.obj";
 	char *main_tex_dir = "../Resources/honey_comb_master.ppm";
 	
@@ -275,7 +276,7 @@ void display(void)
 	glPushMatrix();
 	glScalef(0.3, 0.3, 0.3);
 	glTranslatef(2, 3.3 - fmod(time, 3), 1.4);
-	glmDraw(bunnyModel, GLM_TEXTURE);
+	glmDraw(bunnyModel, GLM_TEXTURE | GLM_MATERIAL);
 	glPopMatrix();
 
 	// floor
