@@ -128,11 +128,9 @@
     <ClCompile Include="glm\glm_util.c" />
     <ClCompile Include="glm_helper.c" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MyPhysicsEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shader_lib\shader.h" />
-    <ClInclude Include="common.h" />
     <ClInclude Include="glm\glm.h" />
     <ClInclude Include="glm\glmint.h" />
     <ClInclude Include="glm_helper.h" />

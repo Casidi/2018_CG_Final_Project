@@ -83,14 +83,9 @@ GLuint rampTextureID; // TA has already loaded this texture for you
 
 GLMmodel *model, *bunnyModel, *teapotModel; //TA has already loaded the model for you(!but you still need to convert it to VBO(s)!)
 GLuint modelVAO;
-int modelVertexNum;
 GLuint modelProgram;
 
 MyPhysicsEngine *physicsEngine;
-
-GLuint depthFrameBuffer;
-GLuint depthTexture;
-GLuint renderedTexture;
 
 float default_eyex = 0.0;
 float default_eyey = 0.64;
@@ -185,38 +180,13 @@ void init(void)
 	glEnable(GL_DEPTH_TEST);
 	print_model_info(teapotModel);
 
-	GLMgroup *group = model->groups;
-	int numVertices = 0;
-	while (group) {
-		numVertices += group->numtriangles * 3;
-		group = group->next;
-	}
-	modelVertexNum = numVertices;
-
-	Vertex *allVertices = new Vertex[numVertices];
-	group = model->groups;
-	while (group) {
-		for (int i = 0; i < group->numtriangles; ++i) {
-			GLMtriangle* triangle = &(model->triangles[group->triangles[i]]);
-			for (int j = 0; j < 3; ++j) {
-				for (int k = 0; k < 3; ++k) {
-					allVertices[i * 3 + j].position[k] = model->vertices[3 * triangle->vindices[j] + k];
-					allVertices[i * 3 + j].normal[k] = model->normals[3 * triangle->nindices[j] + k];
-					allVertices[i * 3 + j].color[k] = model->materials[triangle->material].diffuse[k];
-				}
-				for (int k = 0; k < 2; ++k) {
-					allVertices[i * 3 + j].texcoord[k] = model->texcoords[2 * triangle->tindices[j] + k];
-				}
-			}
-		}
-		group = group->next;
-	}
+	physicsEngine = new MyPhysicsEngine();
+	physicsEngine->addSoftBall(model);
 
 	GLuint vbo_id;
 	glGenBuffers(1, &vbo_id);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*numVertices, allVertices, GL_STATIC_DRAW);
-	delete[] allVertices;
+	glBufferData(GL_ARRAY_BUFFER, physicsEngine->getAllPointsSize(), &(physicsEngine->allPoints[0]), GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &modelVAO);
 	glBindVertexArray(modelVAO);
@@ -227,16 +197,16 @@ void init(void)
 	glEnableVertexAttribArray(3);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(GLfloat)));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(6 * sizeof(GLfloat)));
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(8 * sizeof(GLfloat)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)(6 * sizeof(GLfloat)));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)(8 * sizeof(GLfloat)));
 
 	GLuint vert = createShader("Shaders/barrier.vert", "vertex");
 	GLuint frag = createShader("Shaders/barrier.frag", "fragment");
 	modelProgram = createProgram(vert, frag);
 
-	physicsEngine = new MyPhysicsEngine();
+	
 }
 
 void display(void)
@@ -341,7 +311,7 @@ void myDrawModel() {
 	glBindTexture(GL_TEXTURE_2D, mainTextureID);
 
 	glBindVertexArray(modelVAO);
-	glDrawArrays(GL_TRIANGLES, 0, modelVertexNum);
+	glDrawArrays(GL_TRIANGLES, 0, physicsEngine->allPoints.size());
 	glBindVertexArray(0);
 
 	glActiveTexture(GL_TEXTURE0);
