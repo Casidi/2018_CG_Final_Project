@@ -7,23 +7,11 @@
 #include "../GL/glut.h""
 #include "../shader_lib/shader.h"
 #include "glm/glm.h"
+#include "MyPhysicsEngine.h"
 extern "C"
 {
 	#include "glm_helper.h"
 }
-
-/*you may need to do something here
-you may use the following struct type to perform your single VBO method,
-or you can define/declare multiple VBOs for VAO method.
-Please feel free to modify it*/
-struct Vertex
-{
-	GLfloat position[3];
-	GLfloat normal[3];
-	GLfloat texcoord[2];
-	GLfloat color[3];
-};
-typedef struct Vertex Vertex;
 
 //no need to modify the following function declarations and gloabal variables
 void init(void);
@@ -37,7 +25,6 @@ void idle(void);
 void camera_light_ball_move();
 GLuint loadTexture(char* name, GLfloat width, GLfloat height);
 void myDrawModel();
-void renderDepthTexture();
 
 namespace
 {
@@ -99,6 +86,8 @@ GLuint modelVAO;
 int modelVertexNum;
 GLuint modelProgram;
 
+MyPhysicsEngine *physicsEngine;
+
 GLuint depthFrameBuffer;
 GLuint depthTexture;
 GLuint renderedTexture;
@@ -119,13 +108,15 @@ GLfloat light_pos[] = { default_light_pos[0], default_light_pos[1], default_ligh
 GLfloat ball_pos[] = { default_ball_pos[0], default_ball_pos[1], default_ball_pos[2] };
 GLfloat ball_rot[] = { default_ball_rot[0], default_ball_rot[1], default_ball_rot[2] };
 
-#define deltaTime (10) // in ms (1e-3 second)
+#define deltaTime (100) // in ms (1e-3 second)
 float time;
 
 void Tick(int id)
 {
 	double d = deltaTime / 1000.0;
 	time += d;
+
+	physicsEngine->update(d);
 
 	glutPostRedisplay();
 	glutTimerFunc(deltaTime, Tick, 0); // 100ms for passTime step size
@@ -156,6 +147,9 @@ int main(int argc, char *argv[])
 	glutMainLoop();
 
 	glmDelete(model);
+	glmDelete(bunnyModel);
+	glmDelete(teapotModel);
+	delete physicsEngine;
 	return 0;
 }
 
@@ -241,6 +235,8 @@ void init(void)
 	GLuint vert = createShader("Shaders/barrier.vert", "vertex");
 	GLuint frag = createShader("Shaders/barrier.frag", "fragment");
 	modelProgram = createProgram(vert, frag);
+
+	physicsEngine = new MyPhysicsEngine();
 }
 
 void display(void)

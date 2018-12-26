@@ -3,7 +3,6 @@
 in vec3 fragNormal;
 in vec2 TexCoord;
 in vec3 fragPos;
-in vec3 fragPosLocal;
 in vec3 fragMatColor;
 
 out vec4 FragColor;

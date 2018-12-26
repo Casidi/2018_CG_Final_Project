@@ -29,6 +29,7 @@
     <ClCompile Include="glm\glmimg_sim.c">
       <Filter>glm</Filter>
     </ClCompile>
+    <ClCompile Include="MyPhysicsEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shader_lib\shader.h" />
@@ -41,6 +42,8 @@
     <ClInclude Include="glm\glmint.h">
       <Filter>glm</Filter>
     </ClInclude>
+    <ClInclude Include="MyPhysicsEngine.h" />
+    <ClInclude Include="common.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="glm">

@@ -8,7 +8,6 @@ layout(location = 3) in vec3 aColor;
 out vec3 fragNormal;
 out vec2 TexCoord;
 out vec3 fragPos;
-out vec3 fragPosLocal;
 out vec3 fragMatColor;
 
 uniform mat4 modelMatrix;
@@ -20,6 +19,5 @@ void main() {
 	fragNormal = mat3(transpose(inverse(modelMatrix))) * aNormal;
 	TexCoord = aTexCoord;
 	fragPos = vec3(modelMatrix * vec4(aPos, 1.0));
-	fragPosLocal = aPos;
 	fragMatColor = aColor;
 }
