@@ -29,6 +29,7 @@ public:
 	static const float MASS;
 	static const float GY;
 	static const float FINAL_PRESSURE;
+	static const float KS, KD;
 
 	vector<Spring> allSprings;
 	vector<Point3D> allPoints;
@@ -98,7 +99,30 @@ public:
 		}
 
 		for (int i = 0; i < allSprings.size(); ++i) {
+			Spring& s = allSprings[i];
+			Point3D& p1 = allPoints[s.i];
+			Point3D& p2 = allPoints[s.j];
+			float r12d = distance(p1, p2);
 
+			if (r12d != 0) {
+				float v12[3];
+				for (int j = 0; j < 3; ++j)
+					v12[j] = p1.velocity[j] - p2.velocity[j];
+
+				float f = (r12d - s.length)*KS 
+					+ (v12[0]*(p1.position[0] - p2.position[0])
+						+ v12[1] * (p1.position[1] - p2.position[1])
+						+ v12[2] * (p1.position[2] - p2.position[2])) * KD / r12d;
+
+				float F;
+				for (int j = 0; j < 3; ++j) {
+					F = ((p1.position[j] - p2.position[j]) / r12d) * f;
+					p1.force[j] -= F;
+					p2.force[j] += F;
+				}
+
+				//calculate the normal of the spring
+			}
 		}
 	}
 };
@@ -106,3 +130,5 @@ public:
 const float MyPhysicsEngine::MASS = 1.0f;
 const float MyPhysicsEngine::GY = -10.0f;
 const float MyPhysicsEngine::FINAL_PRESSURE = 85.0f;
+const float MyPhysicsEngine::KS = 1755.0f;
+const float MyPhysicsEngine::KD = 35.0f;
