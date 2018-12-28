@@ -83,6 +83,7 @@ GLuint rampTextureID; // TA has already loaded this texture for you
 
 GLMmodel *model, *bunnyModel, *teapotModel; //TA has already loaded the model for you(!but you still need to convert it to VBO(s)!)
 GLuint modelVAO;
+GLuint modelVBO;
 GLuint modelProgram;
 
 MyPhysicsEngine *physicsEngine;
@@ -112,6 +113,8 @@ void Tick(int id)
 	time += d;
 
 	physicsEngine->update(d);
+	glBindBuffer(GL_ARRAY_BUFFER, modelVBO);
+	glBufferData(GL_ARRAY_BUFFER, physicsEngine->getAllPointsSize(), &(physicsEngine->allPoints[0]), GL_DYNAMIC_DRAW);
 
 	glutPostRedisplay();
 	glutTimerFunc(deltaTime, Tick, 0); // 100ms for passTime step size
@@ -183,9 +186,9 @@ void init(void)
 	physicsEngine = new MyPhysicsEngine();
 	physicsEngine->addSoftBall(model);
 
-	GLuint vbo_id;
-	glGenBuffers(1, &vbo_id);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+	
+	glGenBuffers(1, &modelVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, modelVBO);
 	glBufferData(GL_ARRAY_BUFFER, physicsEngine->getAllPointsSize(), &(physicsEngine->allPoints[0]), GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &modelVAO);
@@ -196,7 +199,7 @@ void init(void)
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
+	glBindBuffer(GL_ARRAY_BUFFER, modelVBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)(3 * sizeof(GLfloat)));
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)(6 * sizeof(GLfloat)));

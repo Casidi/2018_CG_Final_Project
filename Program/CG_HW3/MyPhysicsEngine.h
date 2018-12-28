@@ -19,7 +19,7 @@ struct Spring
 {
 	int i, j;					// points indexes
 	float length;				// rest length
-	float	nx, ny;            	// normal vector   
+	float	norm[3];            	// normal vector   
 };
 
 class MyPhysicsEngine
@@ -42,9 +42,10 @@ public:
 	}
 
 	double distance(const Point3D& a, const Point3D& b) {
-		return sqrt(a.position[0] * a.position[0] 
-				+ a.position[1] * a.position[1] 
-				+ a.position[2] * a.position[2]);
+		double dx = a.position[0] - b.position[0];
+		double dy = a.position[1] - b.position[1];
+		double dz = a.position[2] - b.position[2];
+		return sqrt(dx*dx + dy*dy + dz*dz);
 	}
 
 	void addSoftBall(GLMmodel *model) {
@@ -89,8 +90,6 @@ public:
 	}
 
 	void update(float deltaTime) {
-		//update the positions and the normals
-
 		//Compute gravity
 		for (int i = 0; i < allPoints.size(); ++i) {
 			allPoints[i].force[0] = 0.0f;
@@ -121,14 +120,74 @@ public:
 					p2.force[j] += F;
 				}
 
-				//calculate the normal of the spring
+				s.norm[0] = p1.normal[0];
+				s.norm[1] = p1.normal[1];
+				s.norm[2] = p1.normal[2];
 			}
 		}
+
+		//Calculate volume
+		float volume = 5.0f;
+		Point3D center;
+		center.position[0] = center.position[1] = center.position[2] = 0;
+		for (int i = 0; i < allPoints.size(); ++i) {
+			center.position[0] += allPoints[i].position[0];
+			center.position[1] += allPoints[i].position[1];
+			center.position[2] += allPoints[i].position[2];
+		}
+		center.position[0] /= allPoints.size();
+		center.position[1] /= allPoints.size();
+		center.position[2] /= allPoints.size();
+
+		double maxRadius = 0.0;
+		for (int i = 0; i < allPoints.size(); ++i) {
+			double r = distance(center, allPoints[i]);
+			if (r > maxRadius){
+				maxRadius = r;
+			}
+		}
+		volume = 4 / 3 * 3.14 * pow(maxRadius, 3);
+
+		//Calculate pressure force
+		for (int i = 0; i < allSprings.size(); ++i) {
+			Spring& s = allSprings[i];
+			Point3D& p1 = allPoints[s.i];
+			Point3D& p2 = allPoints[s.j];
+			float r12d = distance(p1, p2);
+
+			float pressurev = r12d * Pressure * (1.0f / volume);
+			for (int j = 0; j < 3; ++j) {
+				p1.force[j] += s.norm[j] * pressurev;
+				p2.force[j] += s.norm[j] * pressurev;
+			}
+		}
+
+		//update the position in x,y,z
+		//pos = old_pos + delta_pos 
+		//	= old_pos + delta_time*vel
+		//	= old_pos + delta_time*(old_vel + delta_time*acc)
+		//	= old_pos + delta_time*(old_vel + delta_time*F/m)
+		for (int i = 0; i < allPoints.size(); ++i) {
+			Point3D& p = allPoints[i];
+			for (int j = 0; j < 3; ++j) {
+				p.velocity[j] = p.velocity[j] + (p.force[j] / MASS) * deltaTime;
+				float delta_pos = p.velocity[j] * deltaTime;
+				p.position[j] += delta_pos;
+			}
+		}
+
+		//update normals for all points
+		//the 3 points in the same triangle share one normal
+		for (int i = 0; i < allPoints.size(); i += 3) {
+
+		}
+
+		Pressure += FINAL_PRESSURE / 100.0f;
 	}
 };
 
 const float MyPhysicsEngine::MASS = 1.0f;
 const float MyPhysicsEngine::GY = -10.0f;
 const float MyPhysicsEngine::FINAL_PRESSURE = 85.0f;
-const float MyPhysicsEngine::KS = 1755.0f;
+const float MyPhysicsEngine::KS = 5.0f;
 const float MyPhysicsEngine::KD = 35.0f;
