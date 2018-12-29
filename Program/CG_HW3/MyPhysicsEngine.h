@@ -41,11 +41,26 @@ public:
 		return sizeof(Point3D) * allPoints.size();
 	}
 
+	double length(const float a[3]) {
+		return sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+	}
+
 	double distance(const Point3D& a, const Point3D& b) {
 		double dx = a.position[0] - b.position[0];
 		double dy = a.position[1] - b.position[1];
 		double dz = a.position[2] - b.position[2];
 		return sqrt(dx*dx + dy*dy + dz*dz);
+	}
+
+	void cross(const float u[3], const float v[3], float result[3]) {
+		result[0] = u[1] * v[2] - u[2] * v[1];
+		result[1] = u[2] * v[0] - u[0] * v[2];
+		result[2] = u[0] * v[1] - u[1] * v[0];
+
+		double l = length(result);
+		result[0] /= l;
+		result[1] /= l;
+		result[2] /= l;
 	}
 
 	void addSoftBall(GLMmodel *model) {
@@ -73,20 +88,18 @@ public:
 					for (int k = 0; k < 2; ++k) {
 						allPoints[i * 3 + j].texcoord[k] = model->texcoords[2 * triangle->tindices[j] + k];
 					}
+				}
 
+				for (int j = 0; j < 3; ++j) {
 					allSprings[i * 3 + j].i = i * 3 + j;
-					allSprings[i * 3 + j].j = i * 3 + (j+1)%3;
-					allSprings[i * 3 + j].length = 
+					allSprings[i * 3 + j].j = i * 3 + (j + 1) % 3;
+					allSprings[i * 3 + j].length =
 						distance(allPoints[allSprings[i * 3 + j].i], allPoints[allSprings[i * 3 + j].j]);
 				}
 			}
 
 			group = group->next;
 		}
-	}
-
-	void addFloor() {
-
 	}
 
 	void update(float deltaTime) {
@@ -169,25 +182,56 @@ public:
 		//	= old_pos + delta_time*(old_vel + delta_time*F/m)
 		for (int i = 0; i < allPoints.size(); ++i) {
 			Point3D& p = allPoints[i];
-			for (int j = 0; j < 3; ++j) {
-				p.velocity[j] = p.velocity[j] + (p.force[j] / MASS) * deltaTime;
-				float delta_pos = p.velocity[j] * deltaTime;
-				p.position[j] += delta_pos;
+
+			//x
+			p.velocity[0] = p.velocity[0] + (p.force[0] / MASS) * deltaTime;
+			float delta_pos = p.velocity[0] * deltaTime;
+			p.position[0] += delta_pos;
+
+			p.velocity[1] = p.velocity[1] + (p.force[1] / MASS) * deltaTime;
+			delta_pos = p.velocity[1] * deltaTime;
+			if (p.position[1] + delta_pos < -1.0f) {
+				p.position[1] = -1.0f;
+				p.velocity[1] = -0.5 * p.velocity[1];
+				p.velocity[0] *= 0.95;
+				p.velocity[2] *= 0.95;
 			}
+			else {
+				p.position[1] += delta_pos;
+			}
+
+			//z
+			p.velocity[2] = p.velocity[2] + (p.force[2] / MASS) * deltaTime;
+			delta_pos = p.velocity[2] * deltaTime;
+			p.position[2] += delta_pos;
 		}
 
 		//update normals for all points
 		//the 3 points in the same triangle share one normal
 		for (int i = 0; i < allPoints.size(); i += 3) {
-
+			Point3D& p1 = allPoints[i];
+			Point3D& p2 = allPoints[i+1];
+			Point3D& p3 = allPoints[i+2];
+			
+			float v1[3], v2[3];
+			float normal[3];
+			for (int j = 0; j < 3; ++j) {
+				v1[j] = p1.position[j] - p2.position[j];
+				v2[j] = p3.position[j] - p2.position[j];
+			}
+			cross(v2, v1, normal);
+			memcpy(p1.normal, normal, sizeof(float) * 3);
+			memcpy(p2.normal, normal, sizeof(float) * 3);
+			memcpy(p3.normal, normal, sizeof(float) * 3);
 		}
 
-		Pressure += FINAL_PRESSURE / 100.0f;
+		if(Pressure < FINAL_PRESSURE)
+			Pressure += FINAL_PRESSURE / 20.0f;
 	}
 };
 
 const float MyPhysicsEngine::MASS = 1.0f;
 const float MyPhysicsEngine::GY = -10.0f;
-const float MyPhysicsEngine::FINAL_PRESSURE = 85.0f;
-const float MyPhysicsEngine::KS = 5.0f;
-const float MyPhysicsEngine::KD = 35.0f;
+const float MyPhysicsEngine::FINAL_PRESSURE = 10.0f;
+const float MyPhysicsEngine::KS = 100.0f;
+const float MyPhysicsEngine::KD = 1.0f;
