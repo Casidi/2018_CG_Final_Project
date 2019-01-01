@@ -24,11 +24,12 @@ void mouse(int button, int state, int x, int y);
 void idle(void);
 void camera_light_ball_move();
 GLuint loadTexture(char* name, GLfloat width, GLfloat height);
-void myDrawModel();
 
 namespace
 {
-	char *obj_file_dir = "../Resources/Football.obj";
+	//char *obj_file_dir = "../Resources/Football.obj";
+	char *obj_file_dir = "../Resources/sphere.obj";
+	//char *obj_file_dir = "../Resources/untitled.obj";
 	char *bunny_file_dir = "../Resources/bunny.obj";
 	char *teapot_file_dir = "../Resources/teapot.obj";
 	char *main_tex_dir = "../Resources/honey_comb_master.ppm";
@@ -82,9 +83,6 @@ GLuint noiseTextureID; // TA has already loaded this texture for you
 GLuint rampTextureID; // TA has already loaded this texture for you
 
 GLMmodel *model, *bunnyModel, *teapotModel; //TA has already loaded the model for you(!but you still need to convert it to VBO(s)!)
-GLuint modelVAO;
-GLuint modelVBO;
-GLuint modelProgram;
 
 MyPhysicsEngine *physicsEngine;
 
@@ -93,7 +91,7 @@ float default_eyey = 0.64;
 float default_eyez = 5.0;
 
 GLfloat default_light_pos[] = { 1.1, 1.0, 1.8 };
-GLfloat default_ball_pos[] = { 0.0, 1.0, 0.0 };
+GLfloat default_ball_pos[] = { 0.0, 3.5, 0.0 };
 GLfloat default_ball_rot[] = { 0.0, 0.0, 0.0 };
 
 float eyex = default_eyex;
@@ -104,7 +102,7 @@ GLfloat light_pos[] = { default_light_pos[0], default_light_pos[1], default_ligh
 GLfloat ball_pos[] = { default_ball_pos[0], default_ball_pos[1], default_ball_pos[2] };
 GLfloat ball_rot[] = { default_ball_rot[0], default_ball_rot[1], default_ball_rot[2] };
 
-#define deltaTime (100) // in ms (1e-3 second)
+#define deltaTime (10)
 float time;
 
 void Tick(int id)
@@ -113,8 +111,6 @@ void Tick(int id)
 	time += d;
 
 	physicsEngine->update(d);
-	glBindBuffer(GL_ARRAY_BUFFER, modelVBO);
-	glBufferData(GL_ARRAY_BUFFER, physicsEngine->getAllPointsSize(), &(physicsEngine->allPoints[0]), GL_DYNAMIC_DRAW);
 
 	glutPostRedisplay();
 	glutTimerFunc(deltaTime, Tick, 0); // 100ms for passTime step size
@@ -184,32 +180,7 @@ void init(void)
 	print_model_info(teapotModel);
 
 	physicsEngine = new MyPhysicsEngine();
-	physicsEngine->addSoftBall(model);
-
-	
-	glGenBuffers(1, &modelVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, modelVBO);
-	glBufferData(GL_ARRAY_BUFFER, physicsEngine->getAllPointsSize(), &(physicsEngine->allPoints[0]), GL_STATIC_DRAW);
-
-	glGenVertexArrays(1, &modelVAO);
-	glBindVertexArray(modelVAO);
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glEnableVertexAttribArray(3);
-
-	glBindBuffer(GL_ARRAY_BUFFER, modelVBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)(3 * sizeof(GLfloat)));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)(6 * sizeof(GLfloat)));
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Point3D), (void*)(8 * sizeof(GLfloat)));
-
-	GLuint vert = createShader("Shaders/barrier.vert", "vertex");
-	GLuint frag = createShader("Shaders/barrier.frag", "fragment");
-	modelProgram = createProgram(vert, frag);
-
-	
+	physicsEngine->addSoftBall(model);	
 }
 
 void display(void)
@@ -232,6 +203,9 @@ void display(void)
 	// light ball
 	glPushMatrix();
 	glTranslatef(light_pos[0], light_pos[1], light_pos[2]);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glColor3f(1.0, 1.0, 1.0);
 	glutSolidSphere(0.1, 20, 20);
 	glPopMatrix();
 
@@ -252,79 +226,29 @@ void display(void)
 	glPopMatrix();
 	glEnable(GL_CULL_FACE);
 
-	myDrawModel();
-	//glmDraw(model,GLM_COLOR);
-
-	glutSwapBuffers();
-	camera_light_ball_move();
-}
-
-void myDrawModel() {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadIdentity();
-	gluLookAt(
-		eyex,
-		eyey,
-		eyez,
-		eyex + cos(eyet*M_PI / 180)*cos(eyep*M_PI / 180),
-		eyey + sin(eyet*M_PI / 180),
-		eyez - cos(eyet*M_PI / 180)*sin(eyep*M_PI / 180),
-		0.0,
-		1.0,
-		0.0);
-	glUseProgram(modelProgram);
-
-	GLfloat mtx[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, mtx);
-	GLint loc = glGetUniformLocation(modelProgram, "viewMatrix");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, mtx);
-
-	glLoadIdentity();
 	glTranslatef(ball_pos[0], ball_pos[1], ball_pos[2]);
 	glRotatef(ball_rot[0], 1, 0, 0);
 	glRotatef(ball_rot[1], 0, 1, 0);
 	glRotatef(ball_rot[2], 0, 0, 1);
-	glGetFloatv(GL_MODELVIEW_MATRIX, mtx);
-	loc = glGetUniformLocation(modelProgram, "modelMatrix");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, mtx);
-
-	glGetFloatv(GL_PROJECTION_MATRIX, mtx);
-	loc = glGetUniformLocation(modelProgram, "projectionMatrix");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, mtx);
-
-	loc = glGetUniformLocation(modelProgram, "myTexture");
-	glUniform1i(loc, 0);
-	loc = glGetUniformLocation(modelProgram, "depthTexture");
-	glUniform1i(loc, 1);
-	loc = glGetUniformLocation(modelProgram, "time");
-	glUniform1f(loc, time);
-
-	loc = glGetUniformLocation(modelProgram, "lightPos");
-	glUniform3fv(loc, 1, light_pos);
-	loc = glGetUniformLocation(modelProgram, "viewPos");
-	glUniform3f(loc, eyex, eyey, eyez);
-
+	const GLfloat glfLightAmbient1[4] = { 0.1, 0.1, 0.1, 1.0 };
+	const GLfloat glfLightDiffuse1[4] = { 0.8, 0.8, 0.8, 1.0 };
+	const GLfloat glfLightSpecular1[4] = { 1.0, 1.0, 1.0, 1.0 };
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glShadeModel(GL_SMOOTH);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, glfLightAmbient1);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, glfLightDiffuse1);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, glfLightSpecular1);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+	
+	glmDraw(model, GLM_SMOOTH);
 	glPopMatrix();
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mainTextureID);
-
-	glBindVertexArray(modelVAO);
-	glDrawArrays(GL_TRIANGLES, 0, physicsEngine->allPoints.size());
-	glBindVertexArray(0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glUseProgram(0);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	glutSwapBuffers();
+	camera_light_ball_move();
 }
-
 //please implement mode toggle(switch mode between phongShading/Dissolving/Ramp) in case 'b'(lowercase)
 void keyboard(unsigned char key, int x, int y) {
 	switch (key) {
